@@ -36,9 +36,6 @@ set.seed(1234)
 ```
 
 
-Page 1
-=====================================================
-
 ```{r data_cleaning, include= FALSE}
 trees <- read_excel("C:/Users/aland/OneDrive/Desktop/HGEN612/hgen-612/data/Data_1993.xlsx", sheet = 1)
 
@@ -161,6 +158,9 @@ final_lasso %>%
   tidy()
 ```
 
+
+Page 1
+=====================================================
 
 Row {date-height=500}{data-width=500}
 -----
