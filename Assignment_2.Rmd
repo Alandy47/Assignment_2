@@ -11,8 +11,8 @@ output:
     source_code: embed
 ---
 
-```{r setup, include=FALSE}
 
+```{r setup, include=FALSE}
 library(flexdashboard)
 library(tidymodels)
 library(vip)
@@ -102,12 +102,14 @@ tree_fit %>%
 ```{r, include=FALSE}
 tree_fit %>% 
   extract_preprocessor()
+
 ```
 
 
 ```{r, include=FALSE}
 tree_fit %>% 
   extract_spec_parsnip()
+
 ```
 
 
@@ -125,6 +127,7 @@ lambda_grid <- grid_regular(penalty(), levels = 50)
 lasso_mod <-
   linear_reg(mixture = 1, penalty = tune()) %>% 
   set_engine("glmnet")
+
 ```
 
 
@@ -139,6 +142,7 @@ set.seed(2020)
 lasso_grid <- tune_grid(tree_lasso_wflow,
   resamples = tree_boot,
   grid = lambda_grid)
+
 ```
 
 
@@ -156,6 +160,7 @@ final_lasso %>%
   fit(tree_train) %>%
   extract_fit_parsnip() %>% 
   tidy()
+
 ```
 
 
@@ -165,7 +170,7 @@ Page 1
 Row {date-height=500}{data-width=500}
 -----
 
-### **Data Table**
+### *Data Table*
 ```{r Data Plot, fig.height= 5, fig.width= 10}
 DT::datatable(trees,
               options =list(scrollX = TRUE))
@@ -175,7 +180,7 @@ DT::datatable(trees,
 
 Row
 -------------
-### **Correlation Heat Map**
+### *Correlation Heat Map*
 
 ```{r Correlation Data Plot}
 trees %>%
@@ -195,7 +200,7 @@ trees %>%
 ```
 
 
-### **VIP Plot**
+### *VIP Plot*
 ```{r Predictors plot}
 final_lasso %>% 
   fit(tree_train) %>% 
@@ -221,13 +226,13 @@ Row {data-width=1000}
 -----
 
 ```{r Model results, fig.height= 10, fig.width= 15}
-
 tree_fit %>% 
   extract_fit_parsnip() %>% 
   check_model(theme = ggthemes::theme_wsj(),
               colors = c("#859900","#B58900","#002B36"))
 
 ```
+
 
 Page 3
 =====================================================
