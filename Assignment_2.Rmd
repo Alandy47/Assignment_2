@@ -229,7 +229,7 @@ Row {data-width=1000}
 tree_fit %>% 
   extract_fit_parsnip() %>% 
   check_model(theme = ggthemes::theme_wsj(),
-              colors = c("#859900","#B58900","#002B36"))
+              colors = c("#859900","#B58900","#cb4b16"))
 
 ```
 
@@ -257,7 +257,7 @@ lasso_grid %>%
   ggthemes::theme_wsj()+
   scale_color_manual(values = c("#859900",
                                 "#B58900",
-                                "#002B36")) +
+                                "#cb4b16")) +
   theme(legend.position = "none",
         plot.background = element_rect(fill = "#fdf6e9", color = NA),
         strip.background = element_rect(fill = "#eee8d5", color = NA))
