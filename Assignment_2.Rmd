@@ -1,0 +1,263 @@
+---
+title: "Brood Tree Prediction"
+output: 
+  flexdashboard::flex_dashboard:
+    theme:
+      bootswatch: solar
+      version: 4
+    logo: C:/Users/aland/OneDrive/Desktop/HGEN612/Projects/Assignment_2/tree_image.jpg
+    orientation: rows
+    vertical_layout: scroll
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+
+library(flexdashboard)
+library(tidymodels)
+library(vip)
+library(tidyverse)
+library(plotly)
+library(readxl)
+library(broom)
+library(car)
+library(ggfortify)
+library(GGally)
+library(performance)
+library(corrr)
+library(caret)
+library(DT)
+library(bslib)
+library(cowplot)
+library(reshape2)
+library(htmltools)
+
+set.seed(1234)
+```
+
+
+Page 1
+=====================================================
+
+```{r data_cleaning, include= FALSE}
+trees <- read_excel("C:/Users/aland/OneDrive/Desktop/HGEN612/hgen-612/data/Data_1993.xlsx", sheet = 1)
+
+trees %>% 
+  as_tibble()
+
+trees_cor <- trees %>% 
+  as_tibble() %>% 
+  select(where(is.numeric)) %>% 
+  correlate() 
+
+trees_cor %>% 
+  rearrange() %>% 
+  fashion() %>% 
+  knitr::kable()
+
+```
+
+
+```{r Data, include= FALSE}
+tree_rec <- trees %>% 
+  recipe(DeadDist ~ TreeDiam + Infest_Serv1 +  Neigh_1 + BA_20th) %>%   step_sqrt(all_outcomes()) %>% 
+  step_corr(all_predictors())
+
+tree_rec %>% 
+  prep() %>% 
+  bake(new_data = NULL)
+
+```
+
+
+```{r Model, include=FALSE}
+lm_mod <- 
+  linear_reg() %>% 
+  set_engine("lm")
+
+```
+
+
+```{r Linear Workflow, include=FALSE}
+tree_wflow <- 
+  workflow() %>% 
+  add_model(lm_mod) %>% 
+  add_recipe(tree_rec)
+
+tree_fit <-
+  fit(tree_wflow , data = trees)
+
+tree_fit %>% 
+  extract_fit_parsnip() %>% 
+  tidy()
+
+```
+
+
+```{r, include=FALSE}
+tree_fit %>% 
+  extract_fit_parsnip() %>% 
+  glance()
+
+```
+
+
+```{r, include=FALSE}
+tree_fit %>% 
+  extract_preprocessor()
+```
+
+
+```{r, include=FALSE}
+tree_fit %>% 
+  extract_spec_parsnip()
+```
+
+
+```{r, include=FALSE}
+# Create training/testing data
+tree_split <- initial_split(trees)
+tree_train <- training(tree_split)
+tree_test <- testing(tree_split)
+
+tree_boot <- bootstraps(tree_train)
+
+lambda_grid <- grid_regular(penalty(), levels = 50)
+
+
+lasso_mod <-
+  linear_reg(mixture = 1, penalty = tune()) %>% 
+  set_engine("glmnet")
+```
+
+
+```{r Lasso Workflow, include=FALSE}
+tree_lasso_wflow <- 
+  workflow() %>% 
+  add_model(lasso_mod) %>% 
+  add_recipe(tree_rec)
+
+
+set.seed(2020)
+lasso_grid <- tune_grid(tree_lasso_wflow,
+  resamples = tree_boot,
+  grid = lambda_grid)
+```
+
+
+```{r lowest RMSE, include=FALSE}
+lowest_rmse <- lasso_grid %>%
+  select_best()
+
+# update our final model with lowest rmse
+final_lasso <-
+  finalize_workflow(tree_lasso_wflow,
+  lowest_rmse)
+
+
+final_lasso %>% 
+  fit(tree_train) %>%
+  extract_fit_parsnip() %>% 
+  tidy()
+```
+
+
+Row {date-height=500}{data-width=500}
+-----
+
+### **Data Table**
+```{r Data Plot, fig.height= 5, fig.width= 10}
+DT::datatable(trees,
+              options =list(scrollX = TRUE))
+
+```
+
+
+Row
+-------------
+Column {data-width=80}
+-------------
+### **Correlation Heat Map**
+
+```{r Correlation Data Plot}
+trees %>%
+  select(where(is.numeric)) %>%
+  correlate() %>%
+  rearrange() %>%
+  rplot(shape = 15,
+        colors = c("#B58900", "#859900")) +
+  theme(axis.text.x = element_text(angle = 45,
+                                   hjust = 1,
+                                   size = 10),
+        axis.text.y = element_text(size = 10),
+        plot.margin = margin(30, 15, 30, 15),
+        plot.background = element_rect(fill = "#eee8d5", color = NA),
+        panel.background = element_rect(fill = "#fdf6e9", color = NA))
+
+```
+
+
+### **VIP Plot**
+```{r Predictors plot}
+final_lasso %>% 
+  fit(tree_train) %>% 
+  extract_fit_parsnip() %>%
+  vip::vip() +
+  geom_col(aes(fill = Variable)) +
+  scale_fill_manual(values = c("#859900",
+                               "#B58900",
+                               "#cb4b16",
+                               "#2aa198")) +
+  ggthemes::theme_wsj() +
+  theme(plot.background = element_rect(fill = "#eee8d5", color = NA),
+        panel.background = element_rect(fill = "#fdf6e9", color = NA),
+        legend.position = "none")
+
+```
+
+
+Page 2
+=====================================================
+
+Row {data-width=1000}
+-----
+
+```{r Model results, fig.height= 10, fig.width= 15}
+
+tree_fit %>% 
+  extract_fit_parsnip() %>% 
+  check_model(theme = ggthemes::theme_wsj(),
+              colors = c("#859900","#B58900","#002B36"))
+
+```
+
+Page 3
+=====================================================
+
+Row
+-----
+
+```{r Evaluation, fig.width= 10, fig.height= 10}
+lasso_grid %>%
+  collect_metrics() %>%
+  ggplot(aes(penalty, 
+             mean, 
+             color = .metric)) +
+  geom_errorbar(aes(ymin = mean - std_err,
+                    ymax = mean + std_err),
+                alpha = 0.5) +
+  geom_line(linewidth = 1.5) +
+  facet_wrap(~.metric, 
+             scales = "free", 
+             nrow = 2) +
+  scale_x_log10() +
+  ggthemes::theme_wsj()+
+  scale_color_manual(values = c("#859900",
+                                "#B58900",
+                                "#002B36")) +
+  theme(legend.position = "none",
+        plot.background = element_rect(fill = "#fdf6e9", color = NA),
+        strip.background = element_rect(fill = "#eee8d5", color = NA))
+
+```
+
