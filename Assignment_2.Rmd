@@ -175,8 +175,6 @@ DT::datatable(trees,
 
 Row
 -------------
-Column {data-width=80}
--------------
 ### **Correlation Heat Map**
 
 ```{r Correlation Data Plot}
