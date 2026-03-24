@@ -173,7 +173,9 @@ Row
 ### *Data Table*
 ```{r Data Plot, fig.height= 350, fig.width= 100}
 DT::datatable(trees,
-              options =list(scrollX = TRUE))
+              options =list(scrollX = TRUE),
+              width = 80,
+              height= 100)
 
 ```
 
