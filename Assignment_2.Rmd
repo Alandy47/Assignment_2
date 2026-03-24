@@ -167,18 +167,18 @@ final_lasso %>%
 Page 1
 =====================================================
 
-Row {date-height=500}{data-width=500}
+Row
 -----
 
 ### *Data Table*
-```{r Data Plot, fig.height= 5, fig.width= 10}
+```{r Data Plot, fig.height= 350, fig.width= 100}
 DT::datatable(trees,
               options =list(scrollX = TRUE))
 
 ```
 
 
-Row
+Row {data-width=100}
 -------------
 ### *Correlation Heat Map*
 
