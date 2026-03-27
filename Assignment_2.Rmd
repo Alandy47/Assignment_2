@@ -167,20 +167,18 @@ final_lasso %>%
 Page 1
 =====================================================
 
-Row
+Row {data-height=350}
 -----
 
 ### *Data Table*
-```{r Data Plot, fig.height= 350, fig.width= 100}
-DT::datatable(trees,
-              options =list(scrollX = TRUE),
-              width = 80,
-              height= 100)
+```{r Data Plot}
+rmarkdown::paged_table(trees)
+
 
 ```
 
 
-Row {data-width=100}
+Row 2 {data-height=650}
 -------------
 ### *Correlation Heat Map*
 
@@ -224,8 +222,6 @@ final_lasso %>%
 Page 2
 =====================================================
 
-Row {data-width=1000}
------
 
 ```{r Model results, fig.height= 10, fig.width= 15}
 tree_fit %>% 
@@ -239,8 +235,6 @@ tree_fit %>%
 Page 3
 =====================================================
 
-Row
------
 
 ```{r Evaluation, fig.width= 10, fig.height= 10}
 lasso_grid %>%
